@@ -1,42 +1,33 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { useEventStore, type AppEvent } from '../../store/eventStore';
-import EventList from './EventList';
-import { Sparkles, CalendarPlus, Loader2 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { LayoutDashboard, Calendar, Sparkles, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { events, setEvents, isLoading, setIsLoading, setError, error } = useEventStore();
+  const [stats, setStats] = useState({ totalEvents: 0 });
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchStats = async () => {
       if (!user) return;
-      
-      setIsLoading(true);
-      setError(null);
       try {
         const { data, error } = await supabase
           .from('events')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('event_date', { ascending: true });
-
-        if (error) throw error;
-        setEvents(data as AppEvent[]);
-      } catch (err: any) {
-        console.error('Error fetching events:', err);
-        setError('No se pudieron cargar los eventos. Por favor, intenta de nuevo.');
-      } finally {
-        setIsLoading(false);
+          .select('id')
+          .eq('user_id', user.id);
+        
+        if (!error && data) {
+          setStats({ totalEvents: data.length });
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard stats', err);
       }
     };
-
-    fetchEvents();
-  }, [user, setEvents, setIsLoading, setError]);
+    fetchStats();
+  }, [user]);
 
   return (
     <motion.div 
@@ -45,57 +36,65 @@ const Dashboard: React.FC = () => {
       transition={{ duration: 0.5 }}
       className="space-y-8"
     >
-      {/* Header with glassmorphism/gradient */}
+      {/* Welcome Header */}
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.5 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-900 p-8 shadow-2xl text-white"
+        className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 p-8 shadow-sm"
       >
-        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[150%] rounded-full bg-purple-600/30 blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-[-20%] left-[-10%] w-[40%] h-[120%] rounded-full bg-indigo-600/30 blur-[100px] pointer-events-none"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+            <LayoutDashboard className="w-6 h-6 text-indigo-600" />
+          </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-purple-400" />
-              Tus Eventos Mágicos
+            <h1 className="text-3xl font-bold text-slate-800">
+              Bienvenido a InvitaMagic
             </h1>
-            <p className="text-slate-300 max-w-xl">
-              Administra tus invitaciones, controla la asistencia de tus invitados y haz que cada celebración sea inolvidable.
+            <p className="text-slate-500">
+              Aquí tienes un resumen de tu actividad.
             </p>
           </div>
-          
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/dashboard/event/new')}
-            className="whitespace-nowrap flex items-center gap-2 px-6 py-3 bg-white text-indigo-900 font-bold rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:bg-indigo-50 transition-all focus:ring-2 focus:ring-white focus:outline-none"
-          >
-            <CalendarPlus className="w-5 h-5" />
-            Crear Nuevo Evento
-          </motion.button>
         </div>
       </motion.div>
 
-      {error && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Quick Stats Card */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 shadow-sm"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between"
         >
-          {error}
+          <div>
+            <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">Eventos Creados</p>
+            <p className="text-4xl font-black text-slate-800">{stats.totalEvents}</p>
+          </div>
+          <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600">
+            <Calendar className="w-8 h-8" />
+          </div>
         </motion.div>
-      )}
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mb-4" />
-          <p className="text-slate-500 font-medium">Cargando tu magia...</p>
-        </div>
-      ) : (
-        <EventList events={events} />
-      )}
+        {/* Action Card */}
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="bg-gradient-to-br from-indigo-600 to-purple-600 p-6 rounded-3xl shadow-md text-white flex flex-col justify-between"
+        >
+          <div>
+            <Sparkles className="w-8 h-8 mb-4 text-purple-200" />
+            <h3 className="text-xl font-bold mb-2">Administra tus Eventos</h3>
+            <p className="text-indigo-100 text-sm mb-4">Revisa la lista de todos tus eventos o crea uno nuevo desde tu panel de control.</p>
+          </div>
+          <button 
+            onClick={() => navigate('/dashboard/events')}
+            className="flex items-center justify-center gap-2 w-full py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl transition-all font-semibold"
+          >
+            Ir a Mis Eventos <ArrowRight className="w-4 h-4" />
+          </button>
+        </motion.div>
+      </div>
     </motion.div>
   );
 };

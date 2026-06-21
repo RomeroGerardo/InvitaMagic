@@ -13,7 +13,7 @@ const DashboardLayout: React.FC = () => {
 
   const navItems = [
     { name: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, exact: true },
-    { name: 'Mis Eventos', to: '/dashboard', icon: Calendar },
+    { name: 'Mis Eventos', to: '/dashboard/events', icon: Calendar },
   ];
 
   return (

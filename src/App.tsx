@@ -6,6 +6,7 @@ import Login from './features/auth/Login'
 import DashboardLayout from './components/layout/DashboardLayout'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import Dashboard from './features/dashboard/Dashboard'
+import EventsPage from './features/dashboard/EventsPage'
 import EventForm from './features/editor/EventForm'
 import InvitationView from './features/public/InvitationView'
 
@@ -51,6 +52,8 @@ function App() {
         >
           {/* Default dashboard view */}
           <Route index element={<Dashboard />} />
+          {/* Event views */}
+          <Route path="events" element={<EventsPage />} />
           {/* Event editor routes */}
           <Route path="event/new" element={<EventForm />} />
           <Route path="event/:id" element={<EventForm />} />
