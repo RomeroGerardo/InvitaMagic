@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Mail, Lock, Loader2, Sparkles } from 'lucide-react';
+import { Mail, Lock, Loader2, Sparkles, Play } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -36,6 +36,45 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const demoEmail = 'demo@invitamagic.com';
+      const demoPassword = 'demopassword123';
+      
+      let { error } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      });
+
+      // Si el usuario demo no existe, intentamos crearlo
+      if (error && error.message.includes('Invalid login credentials')) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: demoEmail,
+          password: demoPassword,
+        });
+        
+        if (signUpError) throw signUpError;
+        
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: demoEmail,
+          password: demoPassword,
+        });
+        
+        if (signInError) throw signInError;
+      } else if (error) {
+        throw error;
+      }
+      
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError('Error al acceder al modo demo: ' + (err.message || 'Ocurrió un error'));
     } finally {
       setLoading(false);
     }
@@ -118,10 +157,31 @@ const Login: React.FC = () => {
             </button>
           </form>
 
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/10"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-transparent text-slate-400">O</span>
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={loading}
+              className="mt-6 w-full flex justify-center items-center gap-2 py-3 px-4 border border-indigo-400/30 rounded-xl shadow-sm text-sm font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Play className="w-4 h-4" />
+              Probar Modo Demo
+            </button>
+          </div>
+
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm font-medium text-indigo-300 hover:text-white transition-colors"
+              className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
             >
               {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
             </button>
