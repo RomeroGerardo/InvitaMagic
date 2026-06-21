@@ -133,7 +133,7 @@ export const supabase: any = {
     };
   },
   functions: {
-    invoke: async (funcName: string, options: any) => {
+    invoke: async (_funcName: string, options: any) => {
       const title = options?.body?.title || 'tu evento';
       const theme = options?.body?.theme || 'mágico';
       return { 
@@ -145,16 +145,16 @@ export const supabase: any = {
     }
   },
   storage: {
-    from: (bucket: string) => ({
-      upload: async (path: string, file: File) => {
+    from: (_bucket: string) => ({
+      upload: async (path: string, _file: File) => {
         return { data: { path }, error: null };
       },
-      getPublicUrl: (path: string) => {
+      getPublicUrl: (_path: string) => {
         return { data: { publicUrl: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop' } };
       }
     })
   },
-  channel: (name: string) => {
+  channel: (_name: string) => {
     return {
       on: () => {
         const chain: any = {

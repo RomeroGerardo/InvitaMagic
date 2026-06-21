@@ -32,7 +32,7 @@ const EventStats: React.FC<EventStatsProps> = ({ eventId }) => {
 
         if (isMounted && data) {
           const newStats = data.reduce(
-            (acc, guest) => {
+            (acc: Stats, guest: any) => {
               if (guest.status === 'attending') {
                 acc.confirmed += 1;
                 acc.companions += guest.companions || 0;
